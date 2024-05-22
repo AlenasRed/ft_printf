@@ -6,13 +6,22 @@
 /*   By: mserjevi <mserjevi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:07:08 by mserjevi          #+#    #+#             */
-/*   Updated: 2024/05/22 13:08:03 by mserjevi         ###   ########.fr       */
+/*   Updated: 2024/05/22 15:16:11 by mserjevi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
+
+int	ft_putc(va_list argptr)
+{
+	char	arg;
+
+	arg = va_arg(argptr, int);
+	write(1, &arg, 1);
+	return (1);
+}
 
 size_t	ft_strlen(const char *s)
 {
@@ -26,10 +35,17 @@ size_t	ft_strlen(const char *s)
 	return (l);
 }
 
-int	putlstr(char *arg)
+int	putstr(va_list argptr)
 {
-	int	l;
+	static int		l;
+	char			*arg;
 
+	arg = va_arg(argptr, char *);
+	if (!arg)
+	{
+		write(1, "(null)", 6);
+		return (0);
+	}
 	l = ft_strlen(arg);
 	if (l == -1)
 		return (l);
@@ -39,13 +55,10 @@ int	putlstr(char *arg)
 
 int	process_format(char c, va_list argptr)
 {
-	char	*arg;
-
-	arg = va_arg(argptr, char *);
-	if (!arg)
-		return (-1);
 	if (c == 's')
-		return (putlstr(arg));
+		return (putstr(argptr));
+	else if (c == 'c')
+		return (ft_putc(argptr));
 	else
 		return (-1);
 }
@@ -58,7 +71,6 @@ int	ft_printf(const char *str, ...)
 
 	va_start(argptr, str);
 	i = 0;
-	arg_len = 0;
 	if (!str[i])
 		return (-1);
 	while (*str)
@@ -68,20 +80,20 @@ int	ft_printf(const char *str, ...)
 			if (*++str == '\0')
 				return (-1);
 			arg_len = process_format(*str++, argptr);
-			if (arg_len == -1 && !(++arg_len))
-				write(1, "(null)", 6);
 			i += arg_len;
 		}
 		else
+		{
 			write(1, str++, 1);
+			i++;
+		}
 	}
-	va_end(argptr);
-	return (i);
+	return (va_end(argptr), i);
 }
 
 int	main(void)
 {
-	int i;
+	char c = 'A';
 	char str[5] = "Milan";
 	//ft_printf("sadas asdas %s asd\n", str);
 	//ft_printf("  sadas asdas %s asd\n", NULL);
@@ -90,4 +102,8 @@ int	main(void)
 	//printf("%d",ft_printf("  sadas asdas %", str));
 	//ft_printf("asdas %s asdas %s%s\n", str, str, str);
 	//ft_printf("asdas %s asdas %s%s\n", str, NULL , str);
+	ft_printf("sadas asdas %c asd\n", c);
+	printf("sadas asdas %c asd\n", c);
+	printf("%d \n",ft_printf("sadas asdas %c asd\n", NULL));
+	printf("%d \n",printf("sadas asdas %c asd\n", NULL));
 }
