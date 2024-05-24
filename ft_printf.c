@@ -6,7 +6,7 @@
 /*   By: mserjevi <mserjevi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:07:08 by mserjevi          #+#    #+#             */
-/*   Updated: 2024/05/24 14:49:53 by mserjevi         ###   ########.fr       */
+/*   Updated: 2024/05/24 15:04:26 by mserjevi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,6 +194,8 @@ int	process_format(char c, va_list argptr)
 		return (ft_utob(argptr));
 	else if (c == 'd' || c == 'i')
 	 	return (ft_putnbr_fd(va_arg(argptr, int), 1));
+	else if (c == 'u')
+		return (ft_putnbr_un(va_arg(argptr, size_t), 1));
 	else
 		return (-1);
 }
@@ -252,4 +254,7 @@ int	main(int argc , char *argv[])
 	//printf("%d\n",ft_printf("sadas asdas %p asd %p\n", pointer, pointer + 1));
 	//printf("%d\n",printf("decimal %d\n integer %i\n", 012, 012));
 	//printf("%d\n",ft_printf("decimal %d\n integer %i\n", 012, 012));
+	//printf("%d\n",printf("unsigned %u", -012));
+	//printf("%d\n",ft_printf("unsigned %u", -012));
 }
+//handle % with no sign after it(not at end)
