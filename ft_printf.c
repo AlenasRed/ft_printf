@@ -6,7 +6,7 @@
 /*   By: mserjevi <mserjevi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:07:08 by mserjevi          #+#    #+#             */
-/*   Updated: 2024/05/24 12:37:21 by mserjevi         ###   ########.fr       */
+/*   Updated: 2024/05/24 14:49:53 by mserjevi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,30 @@ void	ft_putchar_fd(char c, int fd)
 	write(fd, &c, 1);
 }
 
+static void	ft_put(int n, int fd, int sign)
+{
+	if (sign < 0)
+	{
+		if (n > -10)
+		{
+			ft_putchar_fd('0' + n * -1, fd);
+			return ;
+		}
+		ft_put(n / 10, fd, sign);
+		ft_putchar_fd(((n % 10) * -1) + '0', fd);
+	}
+	else
+	{
+		if (n < 10)
+		{
+			ft_putchar_fd('0' + n, fd);
+			return ;
+		}
+		ft_put(n / 10, fd, sign);
+		ft_putchar_fd(n % 10 + '0', fd);
+	}
+}
+
 static int	check_len(size_t n)
 {
 	size_t	l;
@@ -45,6 +69,47 @@ static int	check_len(size_t n)
 		l++;
 	}
 	return (l);
+}
+
+int	ft_putnbr_fd(int n, int fd)
+{
+	int	sign;
+
+	sign = 1;
+	if (n == 0)
+	{
+		ft_putchar_fd('0', fd);
+		return (1);
+	}
+	if (n < 0)
+	{
+		ft_putchar_fd('-', fd);
+		sign *= -1;
+	}
+	ft_put(n, fd, sign);
+	return (check_len(n));
+}
+
+void	ft_put_un(size_t n, int fd)
+{
+	if (n < 10)
+	{
+		ft_putchar_fd('0' + n, fd);
+		return ;
+	}
+	ft_put_un(n / 10, fd);
+	ft_putchar_fd(n % 10 + '0', fd);
+}
+
+int	ft_putnbr_un(size_t n, int fd)
+{
+	if (n == 0)
+	{
+		ft_putchar_fd('0', fd);
+		return (1);
+	}
+	ft_put_un(n, fd);
+	return (check_len(n));
 }
 
 size_t	convert_num(char *num, size_t n)
@@ -127,6 +192,8 @@ int	process_format(char c, va_list argptr)
 		return (ft_putchar_fd(va_arg(argptr, int), 1), 1);
 	else if (c == 'p')
 		return (ft_utob(argptr));
+	else if (c == 'd' || c == 'i')
+	 	return (ft_putnbr_fd(va_arg(argptr, int), 1));
 	else
 		return (-1);
 }
@@ -164,7 +231,9 @@ int	main(int argc , char *argv[])
 	char c;
 	char *str;
 	void *pointer;
+	int	 integer;
 
+	integer = 012;
 	str = argv[1];
 	c = argv[1][0];
 	pointer = argv[1];
@@ -179,7 +248,8 @@ int	main(int argc , char *argv[])
  	//printf("sadas asdas %c asd\n", c);
 	//printf("%d \n",ft_printf("sadas asdas %c asd\n", NULL));
 	//printf("%d \n",printf("sadas asdas %c asd\n", NULL));
-	printf("%d\n",printf("sadas asdas %p asd %p\n", pointer, pointer + 1));
-	printf("%d\n",ft_printf("sadas asdas %p asd %p\n", pointer, pointer + 1));
-
+	//printf("%d\n",printf("sadas asdas %p asd %p\n", pointer, pointer + 1));
+	//printf("%d\n",ft_printf("sadas asdas %p asd %p\n", pointer, pointer + 1));
+	//printf("%d\n",printf("decimal %d\n integer %i\n", 012, 012));
+	//printf("%d\n",ft_printf("decimal %d\n integer %i\n", 012, 012));
 }
