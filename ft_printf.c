@@ -6,7 +6,7 @@
 /*   By: mserjevi <mserjevi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:07:08 by mserjevi          #+#    #+#             */
-/*   Updated: 2024/05/28 13:57:05 by mserjevi         ###   ########.fr       */
+/*   Updated: 2024/05/28 15:56:15 by mserjevi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,14 +202,19 @@ int	process_format(char c, va_list argptr)
 		return (ft_utob(argptr, 1, 'a'));
 	else if (c == 'X')
 		return (ft_utob(argptr, 1, 'A'));
+	else if (c == '%')
+		return (ft_putchar_fd('%', 1), 1);
+	else if (c == ' ')
+		return (ft_putchar_fd(' ', 1), 1);
+	else if (c >= 9 && c <= 13)
+		return (ft_putchar_fd('%', 1), ft_putchar_fd(c, 1), 2);
 	else
-		return (-1);
+		return (ft_putchar_fd('%', 1), 1);
 }
 
 int	ft_printf(const char *str, ...)
 {
 	int		i;
-	int		arg_len;
 	va_list	argptr;
 
 	va_start(argptr, str);
@@ -218,18 +223,19 @@ int	ft_printf(const char *str, ...)
 		return (-1);
 	while (*str)
 	{
-		if (*str == '%')
+		if (*str == '%' )
 		{
 			if (*++str == '\0')
 				return (-1);
-			arg_len = process_format(*str++, argptr);
-			i += arg_len;
+			while (*str == ' ' && *(str + 1) == ' ')
+					str++;
+			if (*str == ' ')
+				i += process_format(*str++, argptr);
+			i += process_format(*str++, argptr);
 		}
 		else
-		{
-			write(1, str++, 1);
-			i++;
-		}
+			if (write(1, str++, 1))
+				i++;
 	}
 	return (va_end(argptr), i);
 }
@@ -262,9 +268,16 @@ int	main(int argc , char *argv[])
 	//printf("%d\n",ft_printf("decimal %d\n integer %i\n", 012, 012));
 	//printf("%d\n",printf("unsigned %u", -012));
 	//printf("%d\n",ft_printf("unsigned %u", -012));
-	printf("%d\n",printf("small signed %x\n", -1534235));
-	printf("%d\n",ft_printf("small signed %x\n", -1534235));
-	printf("%d\n",printf("big signed %X\n", -1534235));
-	printf("%d\n",ft_printf("big signed %X\n", -1534235));
+	//printf("%d\n",printf("small signed %x\n", -1534235));
+	//printf("%d\n",ft_printf("small signed %x\n", -1534235));
+	printf("%d\n",printf("big signed %\n", -1534235));
+	printf("%d\n",ft_printf("big signed %\n", -1534235));
+	printf("%d\n",printf("big signed %\t", -1534235));
+	printf("%d\n",ft_printf("big signed %\t", -1534235));
+	printf("%d\n",printf("big signed %%\n", -1534235));
+	printf("%d\n",ft_printf("big signed %%\n", -1534235));
+	printf("%d\n",printf("big signed %q 1a\n", -1534235));
+	printf("%d\n",ft_printf("big signed %q 1a\n", -1534235));
+	printf("%d\n",printf("b %   d\na", 1));
+	printf("%d\n",ft_printf("b %   d\na", 1));
 }
-//handle % with no sign after it(not at end)
