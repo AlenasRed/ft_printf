@@ -6,14 +6,16 @@
 /*   By: mserjevi <mserjevi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:07:08 by mserjevi          #+#    #+#             */
-/*   Updated: 2024/05/28 15:56:15 by mserjevi         ###   ########.fr       */
+/*   Updated: 2024/05/28 18:10:33 by mserjevi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "./ft_printf.h"
+
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <unistd.h>
+// #include <stdlib.h>
+// #include <stdarg.h>
+// #include <unistd.h>
 
 size_t	ft_strlen(const char *s)
 {
@@ -209,12 +211,53 @@ int	process_format(char c, va_list argptr)
 	else if (c >= 9 && c <= 13)
 		return (ft_putchar_fd('%', 1), ft_putchar_fd(c, 1), 2);
 	else
-		return (ft_putchar_fd('%', 1), 1);
+		return (ft_putchar_fd('%', 1), 0);
+}
+static int	ft_isupper(int c)
+{
+	if (c >= 'A' && c <= 'Z')
+		return (1);
+	else
+		return (0);
+}
+
+static int	ft_islower(int c)
+{
+	if (c >= 'a' && c <= 'z')
+		return (1);
+	else
+		return (0);
+}
+
+int	ft_isalpha(int c)
+{
+	if (c < 0 || c > 255)
+		return (0);
+	if (ft_isupper(c) || ft_islower(c))
+		return (1);
+	else
+		return (0);
+}
+
+
+int edit_format(char *str)
+{
+	int	i;
+
+	i = 0;
+	while(*str && !ft_isalpha(*str))
+	{
+		ft_putchar_fd(' ', 1);
+		str++;
+		i++;
+	}
+		return (i);
 }
 
 int	ft_printf(const char *str, ...)
 {
 	int		i;
+	int		count;
 	va_list	argptr;
 
 	va_start(argptr, str);
@@ -231,7 +274,18 @@ int	ft_printf(const char *str, ...)
 					str++;
 			if (*str == ' ')
 				i += process_format(*str++, argptr);
-			i += process_format(*str++, argptr);
+			if ((*str == '-' || *str == '.' || (*str >= '0' && *str <= '9')) && ft_isalpha(*(str + 1)))
+				str++;
+			if (*str == '-' || *str == '.' || (*str >= '0' && *str <= '9'))
+			{
+				count = edit_format((char *)str);
+				i += count;
+				str += count;
+			}
+			count = process_format(*str++, argptr);
+			if (!count)
+				return (va_end(argptr), ++i);
+			i += count;
 		}
 		else
 			if (write(1, str++, 1))
@@ -239,7 +293,7 @@ int	ft_printf(const char *str, ...)
 	}
 	return (va_end(argptr), i);
 }
-
+/*
 int	main(int argc , char *argv[])
 {
 	char c;
@@ -262,22 +316,27 @@ int	main(int argc , char *argv[])
  	//printf("sadas asdas %c asd\n", c);
 	//printf("%d \n",ft_printf("sadas asdas %c asd\n", NULL));
 	//printf("%d \n",printf("sadas asdas %c asd\n", NULL));
-	//printf("%d\n",printf("sadas asdas %p asd %p\n", pointer, pointer + 1));
-	//printf("%d\n",ft_printf("sadas asdas %p asd %p\n", pointer, pointer + 1));
+	printf("%d \n", ft_printf("%.c", 'a'));
+	printf("%d \n", printf("%.c", 'a'));
+	printf("%d \n", ft_printf("%7.5s", "yolo"));
+	printf("%d \n", printf("%7.5s", "yolo"));
+	//printf("%d\n",ft_printf("sadas asdas %p asd %-p\n", pointer, pointer + 1));
 	//printf("%d\n",printf("decimal %d\n integer %i\n", 012, 012));
 	//printf("%d\n",ft_printf("decimal %d\n integer %i\n", 012, 012));
 	//printf("%d\n",printf("unsigned %u", -012));
 	//printf("%d\n",ft_printf("unsigned %u", -012));
 	//printf("%d\n",printf("small signed %x\n", -1534235));
 	//printf("%d\n",ft_printf("small signed %x\n", -1534235));
-	printf("%d\n",printf("big signed %\n", -1534235));
-	printf("%d\n",ft_printf("big signed %\n", -1534235));
-	printf("%d\n",printf("big signed %\t", -1534235));
-	printf("%d\n",ft_printf("big signed %\t", -1534235));
-	printf("%d\n",printf("big signed %%\n", -1534235));
-	printf("%d\n",ft_printf("big signed %%\n", -1534235));
-	printf("%d\n",printf("big signed %q 1a\n", -1534235));
-	printf("%d\n",ft_printf("big signed %q 1a\n", -1534235));
-	printf("%d\n",printf("b %   d\na", 1));
-	printf("%d\n",ft_printf("b %   d\na", 1));
-}
+	// printf("%d\n",printf("big signed %\n", -1534235));
+	// printf("%d\n",ft_printf("big signed %\n", -1534235));
+	// printf("%d\n",printf("big signed %\t", -1534235));
+	// printf("%d\n",ft_printf("big signed %\t", -1534235));
+	// printf("%d\n",printf("big signed %%\n", -1534235));
+	// printf("%d\n",ft_printf("big signed %%\n", -1534235));
+	// printf("%d\n",printf("big signed %q 1a\n", -1534235));
+	// printf("%d\n",ft_printf("big signed %q 1a\n", -1534235));
+	// printf("%d\n",printf("b %   d\na", 1));
+	// printf("%d\n",ft_printf("b %   d\na", 1));
+	//printf("%d \n", ft_printf("%-5%"));
+	//printf("%d \n", printf("%-5%"));
+}*/
