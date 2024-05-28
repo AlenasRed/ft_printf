@@ -6,7 +6,7 @@
 /*   By: mserjevi <mserjevi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:07:08 by mserjevi          #+#    #+#             */
-/*   Updated: 2024/05/24 15:04:26 by mserjevi         ###   ########.fr       */
+/*   Updated: 2024/05/28 13:57:05 by mserjevi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,54 +112,56 @@ int	ft_putnbr_un(size_t n, int fd)
 	return (check_len(n));
 }
 
-size_t	convert_num(char *num, size_t n)
+size_t	convert_num(char *num, size_t n, int sign, char X)
 {
 	size_t	l;
 
 	l = 0;
-	//printf("First n = %zu\n", n);
 	if (n == 0)
 	{
-		num[0] = '0';
-		num[1] = 'x';
-		l = 2;
+		if (!sign)
+		{
+			num[0] = '0';
+			num[1] = 'x';
+			l = 2;
+		}
 	}
 	else
 	{
-		l = convert_num(num, n / 16);
-		//printf("N = %zu \n", n % 16);
+		l = convert_num(num, n / 16, sign, X);
 		if ( n % 16 < 10)
 			num[l] = '0' + (n % 16);
 		else
-			num[l] = 'a' + (n % 16) - 10;
+			num[l] = X + (n % 16) - 10;
 		l++;
 	}
 	num[l] = '\0';
 	return (l);
 }
 
-int	ft_utob(va_list argptr)
+int	ft_utob(va_list argptr,int sign, char X)
 {
 	int		l;
 	char	*num;
 	void	*arg;
 	size_t	n;
 
-	arg = va_arg(argptr, void *);
+	//if (sign)
+	//	n = va_arg(argptr, int);
+	//else
+		arg = va_arg(argptr, void *);
 	if (!arg)
 	{
 		write(1, "(nil)", 5);
 		return (5);
 	}
-	n = (size_t)arg;
+	//if (!sign)
+		n = (size_t)arg;
 	l = check_len(n);
 	num = (char *) malloc(sizeof(char) * (l + 2));
 	if (num == NULL)
 		return (-1);
-
-	//printf("n = %zu \n runed l = %d \n", n, l);
-	l = convert_num(num, n);
-	//printf("runed l = %d \n", l);
+	l = convert_num(num, n, sign, X);
 	write(1, num, l);
 	free(num);
 	return (l);
@@ -191,11 +193,15 @@ int	process_format(char c, va_list argptr)
 	else if (c == 'c')
 		return (ft_putchar_fd(va_arg(argptr, int), 1), 1);
 	else if (c == 'p')
-		return (ft_utob(argptr));
+		return (ft_utob(argptr, 0, 'a'));
 	else if (c == 'd' || c == 'i')
 	 	return (ft_putnbr_fd(va_arg(argptr, int), 1));
 	else if (c == 'u')
 		return (ft_putnbr_un(va_arg(argptr, size_t), 1));
+	else if (c == 'x')
+		return (ft_utob(argptr, 1, 'a'));
+	else if (c == 'X')
+		return (ft_utob(argptr, 1, 'A'));
 	else
 		return (-1);
 }
@@ -256,5 +262,9 @@ int	main(int argc , char *argv[])
 	//printf("%d\n",ft_printf("decimal %d\n integer %i\n", 012, 012));
 	//printf("%d\n",printf("unsigned %u", -012));
 	//printf("%d\n",ft_printf("unsigned %u", -012));
+	printf("%d\n",printf("small signed %x\n", -1534235));
+	printf("%d\n",ft_printf("small signed %x\n", -1534235));
+	printf("%d\n",printf("big signed %X\n", -1534235));
+	printf("%d\n",ft_printf("big signed %X\n", -1534235));
 }
 //handle % with no sign after it(not at end)
