@@ -6,13 +6,14 @@
 /*   By: mserjevi <mserjevi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:07:08 by mserjevi          #+#    #+#             */
-/*   Updated: 2024/05/28 18:10:33 by mserjevi         ###   ########.fr       */
+/*   Updated: 2024/05/29 16:01:48 by mserjevi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./ft_printf.h"
 
 #include <stdio.h>
+#include <unistd.h>
 // #include <stdlib.h>
 // #include <stdarg.h>
 // #include <unistd.h>
@@ -58,7 +59,37 @@ static void	ft_put(int n, int fd, int sign)
 	}
 }
 
-static int	check_len(size_t n)
+static int	check_len(int n)
+{
+	size_t	l;
+
+	l = 1;
+	if (n > 0)
+		l--;
+	while (n)
+	{
+		n /= 10;
+		l++;
+	}
+	return (l);
+}
+
+static int	check_len_un(unsigned int n)
+{
+	size_t	l;
+
+	l = 1;
+	if (n > 0)
+		l--;
+	while (n)
+	{
+		n /= 10;
+		l++;
+	}
+	return (l);
+}
+
+static int	check_len_pointer(size_t n)
 {
 	size_t	l;
 
@@ -103,7 +134,7 @@ void	ft_put_un(size_t n, int fd)
 	ft_putchar_fd(n % 10 + '0', fd);
 }
 
-int	ft_putnbr_un(size_t n, int fd)
+int	ft_putnbr_un(unsigned int n, int fd)
 {
 	if (n == 0)
 	{
@@ -111,26 +142,43 @@ int	ft_putnbr_un(size_t n, int fd)
 		return (1);
 	}
 	ft_put_un(n, fd);
-	return (check_len(n));
+	return (check_len_un(n));
 }
 
-size_t	convert_num(char *num, size_t n, int sign, char X)
+unsigned int	convert_pointer(char *num, size_t n, char X)
 {
-	size_t	l;
+	unsigned int	l;
 
 	l = 0;
+
 	if (n == 0)
 	{
-		if (!sign)
-		{
 			num[0] = '0';
 			num[1] = 'x';
 			l = 2;
-		}
 	}
 	else
 	{
-		l = convert_num(num, n / 16, sign, X);
+		l = convert_pointer(num, n / 16, X);
+		if ( n % 16 < 10)
+			num[l] = '0' + (n % 16);
+		else
+			num[l] = X + (n % 16) - 10;
+		l++;
+	}
+	num[l] = '\0';
+	return (l);
+}
+
+unsigned int	convert_num(char *num, unsigned int n, char X)
+{
+	unsigned int	l;
+
+	l = 0;
+
+	if (n)
+	{
+		l = convert_num(num, n / 16, X);
 		if ( n % 16 < 10)
 			num[l] = '0' + (n % 16);
 		else
@@ -151,21 +199,36 @@ int	ft_utob(va_list argptr,int sign, char X)
 	//if (sign)
 	//	n = va_arg(argptr, int);
 	//else
-		arg = va_arg(argptr, void *);
-	if (!arg)
+	arg = va_arg(argptr, void *);
+	if (!sign && !arg)
 	{
 		write(1, "(nil)", 5);
 		return (5);
 	}
 	//if (!sign)
-		n = (size_t)arg;
-	l = check_len(n);
-	num = (char *) malloc(sizeof(char) * (l + 2));
+	n = (size_t)arg;
+	//printf("N %zu\n", n);
+	if (sign && !(unsigned int)n)
+	{
+		write(1, "0", 1);
+		l = 1;
+	}
+	else
+	{
+	if (sign)
+		l = check_len_un(n);
+	else
+		l = check_len_pointer(n);
+	num = (char *) malloc(sizeof(char) * (l + 3));
 	if (num == NULL)
 		return (-1);
-	l = convert_num(num, n, sign, X);
+	if (sign)
+		l = convert_num(num, n, X);
+	else
+		l = convert_pointer(num, n, X);
 	write(1, num, l);
 	free(num);
+	}
 	return (l);
 }
 
@@ -179,7 +242,7 @@ int	putstr(va_list argptr)
 	if (!arg)
 	{
 		write(1, "(null)", 6);
-		return (0);
+		return (6);
 	}
 	l = ft_strlen(arg);
 	/*if (l == -1)
@@ -211,7 +274,7 @@ int	process_format(char c, va_list argptr)
 	else if (c >= 9 && c <= 13)
 		return (ft_putchar_fd('%', 1), ft_putchar_fd(c, 1), 2);
 	else
-		return (ft_putchar_fd('%', 1), 0);
+		return (ft_putchar_fd('%', 1), -1);
 }
 static int	ft_isupper(int c)
 {
@@ -283,7 +346,7 @@ int	ft_printf(const char *str, ...)
 				str += count;
 			}
 			count = process_format(*str++, argptr);
-			if (!count)
+			if (count == -1)
 				return (va_end(argptr), ++i);
 			i += count;
 		}
@@ -294,6 +357,8 @@ int	ft_printf(const char *str, ...)
 	return (va_end(argptr), i);
 }
 /*
+# include <limits.h>
+
 int	main(int argc , char *argv[])
 {
 	char c;
@@ -305,6 +370,16 @@ int	main(int argc , char *argv[])
 	str = argv[1];
 	c = argv[1][0];
 	pointer = argv[1];
+	//printf("%d\n",printf(" %p %p ", LONG_MIN, LONG_MAX));
+	//printf("%d\n",ft_printf(" %p %p ", LONG_MIN, LONG_MAX));
+	printf("%d\n",printf(" %x ", -1));
+	printf("%d\n",ft_printf(" %x ", -1));
+	//printf("\n%d\n",printf(" %u ", LONG_MAX));
+	//printf("\n%d\n",ft_printf(" %u ", LONG_MAX));
+	//printf("%d\n",printf(" %d ", -1));
+	//printf("%d\n",ft_printf(" %d ", -1));
+	//printf(" %d",ft_printf(" NULL %s NULL ", NULL));
+	//printf(" %d",printf(" NULL %s NULL ", NULL));
 	//ft_printf("sadas asdas %s asd\n", str);
 	//ft_printf("  sadas asdas %s asd\n", NULL);
 	//ft_printf("  %s\n",str);
@@ -316,10 +391,10 @@ int	main(int argc , char *argv[])
  	//printf("sadas asdas %c asd\n", c);
 	//printf("%d \n",ft_printf("sadas asdas %c asd\n", NULL));
 	//printf("%d \n",printf("sadas asdas %c asd\n", NULL));
-	printf("%d \n", ft_printf("%.c", 'a'));
-	printf("%d \n", printf("%.c", 'a'));
-	printf("%d \n", ft_printf("%7.5s", "yolo"));
-	printf("%d \n", printf("%7.5s", "yolo"));
+	// printf("%d \n", ft_printf("%.c", 'a'));
+	// printf("%d \n", printf("%.c", 'a'));
+	// printf("%d \n", ft_printf("%7.5s", "yolo"));
+	// printf("%d \n", printf("%7.5s", "yolo"));
 	//printf("%d\n",ft_printf("sadas asdas %p asd %-p\n", pointer, pointer + 1));
 	//printf("%d\n",printf("decimal %d\n integer %i\n", 012, 012));
 	//printf("%d\n",ft_printf("decimal %d\n integer %i\n", 012, 012));
